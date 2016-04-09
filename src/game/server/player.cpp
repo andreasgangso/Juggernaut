@@ -127,8 +127,11 @@ void CPlayer::Snap(int SnappingClient)
 	StrToInts(&pClientInfo->m_Clan0, 3, Server()->ClientClan(m_ClientID));
 	//JUGGERNAUT - Check if player is juggernaut, change clan
 	if(str_comp(GameServer()->m_pController->m_pGameType, "JUG")==0){
-		if(dynamic_cast<CGameControllerJUG*>(GameServer()->m_pController)->IsJuggernaut(m_ClientID)){
-			StrToInts(&pClientInfo->m_Clan0, 3, "JGRNT");
+		CGameControllerJUG *JUGController = dynamic_cast<CGameControllerJUG*>(GameServer()->m_pController);
+		if(JUGController){
+			if(JUGController->IsJuggernaut(m_ClientID)){
+				StrToInts(&pClientInfo->m_Clan0, 3, "JGRNT");
+			}
 		}
 	}
 	//

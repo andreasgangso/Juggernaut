@@ -14,9 +14,14 @@ CGameControllerJUG::CGameControllerJUG(class CGameContext *pGameServer) : IGameC
 
 //This is called from player.cpp (snap)
 bool CGameControllerJUG::IsJuggernaut(int ClientID){
-	if(current_jug->GetCID() == ClientID)
-		return true;
-	return false;
+	if(current_jug){
+		if(current_jug->GetCID() == ClientID)
+			return true;
+		return false;
+	}else{
+		NewJuggernaut();
+		return false;
+	}
 }
 
 void CGameControllerJUG::NewJuggernaut(class CPlayer *pPlayer){

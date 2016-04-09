@@ -234,3 +234,10 @@ _Pvt_Extensions
 
 # FAKE - F# Make
 .fake/
+.bam/0000000000000000
+config.lua
+datasrc/__pycache__/content.cpython-35.pyc
+datasrc/__pycache__/datatypes.cpython-35.pyc
+datasrc/__pycache__/network.cpython-35.pyc
+other/icons/teeworlds_srv_cl.res
+teeworlds_srv.exe

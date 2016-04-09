@@ -37,7 +37,9 @@ void CGameControllerJUG::NewJuggernaut(class CPlayer *pPlayer){
 			current_jug = NULL;
 			return;
 		}
-		int random_id = rand() % count;
+		while (random_id == current_jug.getCID()){
+			int random_id = rand() % count;
+		}
 		pPlayer = GameServer()->m_apPlayers[random_id];
 	}
 	//end random
@@ -58,7 +60,7 @@ int CGameControllerJUG::OnCharacterDeath(class CCharacter *pVictim, class CPlaye
 {
 	IGameController::OnCharacterDeath(pVictim, pKiller, Weapon);
 
-	if(pVictim){
+	if(pVictim && pVictim->GetPlayer()){
 		//If it was a disconnect/teamswitch, and it was juggernaut -> New random juggernaut
 		if(Weapon == WEAPON_GAME && IsJuggernaut(pVictim->GetPlayer()->GetCID())){
 			NewJuggernaut();

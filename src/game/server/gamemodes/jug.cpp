@@ -4,49 +4,45 @@
 
 #include <game/server/entities/character.h>
 #include <game/server/player.h>
-#include "tdm.h"
+#include "jug.h"
 
-CGameControllerTDM::CGameControllerTDM(class CGameContext *pGameServer) : IGameController(pGameServer)
+CGameControllerJUG::CGameControllerJUG(class CGameContext *pGameServer) : IGameController(pGameServer)
 {
-	m_pGameType = "TDM";
-	m_GameFlags = GAMEFLAG_TEAMS;
+	m_pGameServer = pGameServer;
+	m_pGameType = "JUG";
 }
 
-int CGameControllerTDM::OnCharacterDeath(class CCharacter *pVictim, class CPlayer *pKiller, int Weapon)
+int CGameControllerJUG::OnCharacterDeath(class CCharacter *pVictim, class CPlayer *pKiller, int Weapon)
 {
 	IGameController::OnCharacterDeath(pVictim, pKiller, Weapon);
 
 
-	if(pKiller && Weapon != WEAPON_GAME)
+	if(Weapon != WEAPON_GAME && Weapon != WEAPON_SELF && Weapon != WEAPON_WORLD)
 	{
-		// do team scoring
-		if(pKiller == pVictim->GetPlayer() || pKiller->GetTeam() == pVictim->GetPlayer()->GetTeam())
-			m_aTeamscore[pKiller->GetTeam()&1]--; // klant arschel
-		else
-			m_aTeamscore[pKiller->GetTeam()&1]++; // good shit
-	}
+		if(pKiller && pVictim)
+		{
+			if(pKiller->team == 0 && pVictim->team && pKiller->get_character())
+			{
+				pVictim->team = 0;
+				game.controller->on_player_info_change(pVictim);
 
-	pVictim->GetPlayer()->m_RespawnTick = max(pVictim->GetPlayer()->m_RespawnTick, Server()->Tick()+Server()->TickSpeed()*g_Config.m_SvRespawnDelayTDM);
+				current_jug = pKiller;
+				//give 50 health
+				current_jug->get_character()->real_health = 50;
+
+				char buf[512];
+				str_format(buf, sizeof(buf), "%s is the new juggernaut!", server_clientname(current_jug->client_id));
+				game.create_sound_global(SOUND_CTF_CAPTURE);
+				game.send_chat(-1, GAMECONTEXT::CHAT_ALL, buf);
+				game.send_broadcast(buf, -1);
+			}
+		}
+	}
 
 	return 0;
 }
 
-void CGameControllerTDM::Snap(int SnappingClient)
-{
-	IGameController::Snap(SnappingClient);
-
-	CNetObj_GameData *pGameDataObj = (CNetObj_GameData *)Server()->SnapNewItem(NETOBJTYPE_GAMEDATA, 0, sizeof(CNetObj_GameData));
-	if(!pGameDataObj)
-		return;
-
-	pGameDataObj->m_TeamscoreRed = m_aTeamscore[TEAM_RED];
-	pGameDataObj->m_TeamscoreBlue = m_aTeamscore[TEAM_BLUE];
-
-	pGameDataObj->m_FlagCarrierRed = 0;
-	pGameDataObj->m_FlagCarrierBlue = 0;
-}
-
-void CGameControllerTDM::Tick()
+void CGameControllerJUG::Tick()
 {
 	IGameController::Tick();
 }

@@ -11,9 +11,12 @@ public:
 
 	int OnCharacterDeath(class CCharacter *pVictim, class CPlayer *pKiller, int Weapon);
 	virtual void Tick();
+	void NewJuggernaut(class CPlayer *pPlayer = null);
 
 	Player* current_jug;
+
 private:
 	CGameContext *m_pGameServer;
+	CGameContext *GameServer() const { return m_pGameServer; }
 };
 #endif

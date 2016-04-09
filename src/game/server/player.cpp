@@ -124,6 +124,13 @@ void CPlayer::Snap(int SnappingClient)
 
 	StrToInts(&pClientInfo->m_Name0, 4, Server()->ClientName(m_ClientID));
 	StrToInts(&pClientInfo->m_Clan0, 3, Server()->ClientClan(m_ClientID));
+	//JUGGERNAUT - Check if player is juggernaut, change clan
+	if(str_comp(m_pController->m_pGameType, "JUG")==0){
+		if(m_pController->IsJuggernaut(m_ClientID)){
+			StrToInts(&pClientInfo->m_Clan0, 3, "JGRNT");
+		}
+	}
+	//
 	pClientInfo->m_Country = Server()->ClientCountry(m_ClientID);
 	StrToInts(&pClientInfo->m_Skin0, 6, m_TeeInfos.m_SkinName);
 	pClientInfo->m_UseCustomColor = m_TeeInfos.m_UseCustomColor;

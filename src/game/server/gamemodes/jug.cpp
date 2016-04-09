@@ -12,29 +12,57 @@ CGameControllerJUG::CGameControllerJUG(class CGameContext *pGameServer) : IGameC
 	m_pGameType = "JUG";
 }
 
+//This is called from player.cpp (snap)
+bool CGameControllerJUG::IsJuggernaut(int ClientID){
+	if(current_jug->GetCID == ClientID)
+		return true;
+	return false;
+}
+
+void CGameControllerJUG::NewJuggernaut(class CPlayer *pPlayer){
+	//Random juggernaut
+	if(!pPlayer){
+	  int count = 0;
+		for(int i = 0; i < MAX_CLIENTS; i++)
+		{
+			if(GameServer()->m_apPlayers[i])
+				count++;
+		}
+		int random_id = rand() % count;
+		pPlayer = GameServer()->m_apPlayers[random_id];
+	}
+	//end random
+
+	current_jug = pPlayer;
+
+	//give 50 health
+	current_jug->GetCharacter()->real_health = 50;
+
+	char buf[512];
+	str_format(buf, sizeof(buf), "%s is the new juggernaut!", GameServer()->Server()->ClientName(current_jug->client_id));
+	GameServer().CreateSoundGlobal(SOUND_CTF_CAPTURE);
+	GameServer().SendChat(-1, GAMECONTEXT::CHAT_ALL, buf);
+	GameServer().SendBroadcast(buf, -1);
+}
+
 int CGameControllerJUG::OnCharacterDeath(class CCharacter *pVictim, class CPlayer *pKiller, int Weapon)
 {
 	IGameController::OnCharacterDeath(pVictim, pKiller, Weapon);
 
+	if(pVictim){
+		//If it was a disconnect/teamswitch, and it was juggernaut -> New random juggernaut
+		if(Weapon == WEAPON_GAME && IsJuggernaut(pVictim->GetPlayer()->GetCID())){
+			NewJuggernaut();
+		}
+  }
 
 	if(Weapon != WEAPON_GAME && Weapon != WEAPON_SELF && Weapon != WEAPON_WORLD)
 	{
 		if(pKiller && pVictim)
 		{
-			if(pKiller->team == 0 && pVictim->team && pKiller->get_character())
+			if(pKiller->GetCharacter())
 			{
-				pVictim->team = 0;
-				game.controller->on_player_info_change(pVictim);
-
-				current_jug = pKiller;
-				//give 50 health
-				current_jug->get_character()->real_health = 50;
-
-				char buf[512];
-				str_format(buf, sizeof(buf), "%s is the new juggernaut!", server_clientname(current_jug->client_id));
-				game.create_sound_global(SOUND_CTF_CAPTURE);
-				game.send_chat(-1, GAMECONTEXT::CHAT_ALL, buf);
-				game.send_broadcast(buf, -1);
+				NewJuggernaut(pKiller);
 			}
 		}
 	}

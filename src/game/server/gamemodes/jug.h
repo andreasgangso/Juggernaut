@@ -14,7 +14,7 @@ public:
 	void NewJuggernaut(class CPlayer *pPlayer = NULL);
 	bool IsJuggernaut(int ClientID);
 
-	CPlayer* current_jug;
+	CPlayer* current_jug = NULL;
 
 private:
 	CGameContext *m_pGameServer;

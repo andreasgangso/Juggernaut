@@ -10,6 +10,7 @@ public:
 	CGameControllerJUG(class CGameContext *pGameServer);
 
 	int OnCharacterDeath(class CCharacter *pVictim, class CPlayer *pKiller, int Weapon);
+	bool IsFriendlyFire(int ClientID1, int ClientID2);
 	virtual void Tick();
 	void NewJuggernaut(class CPlayer *pPlayer = NULL);
 	bool IsJuggernaut(int ClientID);

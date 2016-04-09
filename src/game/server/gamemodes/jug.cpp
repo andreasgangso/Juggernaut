@@ -33,6 +33,10 @@ void CGameControllerJUG::NewJuggernaut(class CPlayer *pPlayer){
 			if(GameServer()->m_apPlayers[i])
 				count++;
 		}
+		if(count == 0){
+			current_jug = NULL;
+			return;
+		}
 		int random_id = rand() % count;
 		pPlayer = GameServer()->m_apPlayers[random_id];
 	}
@@ -73,6 +77,17 @@ int CGameControllerJUG::OnCharacterDeath(class CCharacter *pVictim, class CPlaye
 	}
 
 	return 0;
+}
+
+bool CGameControllerJUG::IsFriendlyFire(int ClientID1, int ClientID2)
+{
+	if(ClientID1 == ClientID2)
+		return false;
+
+	if(!IsJuggernaut(ClientID1) && !IsJuggernaut(ClientID2)){
+		return true;
+	}
+	return false;
 }
 
 void CGameControllerJUG::Tick()

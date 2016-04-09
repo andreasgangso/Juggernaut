@@ -4,16 +4,17 @@
 #define GAME_SERVER_GAMEMODES_JUG_H
 #include <game/server/gamecontroller.h>
 
-class CGameControllerTDM : public IGameController
+class CGameControllerJUG : public IGameController
 {
 public:
-	CGameControllerTDM(class CGameContext *pGameServer);
+	CGameControllerJUG(class CGameContext *pGameServer);
 
 	int OnCharacterDeath(class CCharacter *pVictim, class CPlayer *pKiller, int Weapon);
 	virtual void Tick();
-	void NewJuggernaut(class CPlayer *pPlayer = null);
+	void NewJuggernaut(class CPlayer *pPlayer = NULL);
+	bool IsJuggernaut(int ClientID);
 
-	Player* current_jug;
+	CPlayer* current_jug;
 
 private:
 	CGameContext *m_pGameServer;

@@ -676,6 +676,12 @@ void CCharacter::TickPaused()
 		++m_EmoteStop;
 }
 
+//JUGGERNAUT
+bool CCharacter::SetHealth(int Amount){
+	m_Health = Amount;
+	return true;
+}
+
 bool CCharacter::IncreaseHealth(int Amount)
 {
 	if(m_Health >= 10)

@@ -3,6 +3,7 @@
 #include <new>
 #include <engine/shared/config.h>
 #include "player.h"
+#include "gamemodes/jug.h"
 
 
 MACRO_ALLOC_POOL_ID_IMPL(CPlayer, MAX_CLIENTS)
@@ -125,8 +126,8 @@ void CPlayer::Snap(int SnappingClient)
 	StrToInts(&pClientInfo->m_Name0, 4, Server()->ClientName(m_ClientID));
 	StrToInts(&pClientInfo->m_Clan0, 3, Server()->ClientClan(m_ClientID));
 	//JUGGERNAUT - Check if player is juggernaut, change clan
-	if(str_comp(m_pController->m_pGameType, "JUG")==0){
-		if(m_pController->IsJuggernaut(m_ClientID)){
+	if(str_comp(GameServer()->m_pController->m_pGameType, "JUG")==0){
+		if(dynamic_cast<CGameControllerJUG*>(GameServer()->m_pController)->IsJuggernaut(m_ClientID)){
 			StrToInts(&pClientInfo->m_Clan0, 3, "JGRNT");
 		}
 	}

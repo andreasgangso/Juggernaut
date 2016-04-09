@@ -14,7 +14,7 @@ CGameControllerJUG::CGameControllerJUG(class CGameContext *pGameServer) : IGameC
 
 //This is called from player.cpp (snap)
 bool CGameControllerJUG::IsJuggernaut(int ClientID){
-	if(current_jug->GetCID == ClientID)
+	if(current_jug->GetCID() == ClientID)
 		return true;
 	return false;
 }
@@ -35,14 +35,14 @@ void CGameControllerJUG::NewJuggernaut(class CPlayer *pPlayer){
 
 	current_jug = pPlayer;
 
-	//give 50 health
-	current_jug->GetCharacter()->real_health = 50;
+	//Give 50 health
+	current_jug->GetCharacter()->SetHealth(50);
 
 	char buf[512];
-	str_format(buf, sizeof(buf), "%s is the new juggernaut!", GameServer()->Server()->ClientName(current_jug->client_id));
-	GameServer().CreateSoundGlobal(SOUND_CTF_CAPTURE);
-	GameServer().SendChat(-1, GAMECONTEXT::CHAT_ALL, buf);
-	GameServer().SendBroadcast(buf, -1);
+	str_format(buf, sizeof(buf), "%s is the new juggernaut!", GameServer()->Server()->ClientName(current_jug->GetCID()));
+	GameServer()->CreateSoundGlobal(SOUND_CTF_CAPTURE);
+	GameServer()->SendChat(-1, CGameContext::CHAT_ALL, buf);
+	GameServer()->SendBroadcast(buf, -1);
 }
 
 int CGameControllerJUG::OnCharacterDeath(class CCharacter *pVictim, class CPlayer *pKiller, int Weapon)

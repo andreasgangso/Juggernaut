@@ -125,21 +125,25 @@ void CPlayer::Snap(int SnappingClient)
 
 	StrToInts(&pClientInfo->m_Name0, 4, Server()->ClientName(m_ClientID));
 	StrToInts(&pClientInfo->m_Clan0, 3, Server()->ClientClan(m_ClientID));
-	//JUGGERNAUT - Check if player is juggernaut, change clan
-	if(str_comp(GameServer()->m_pController->m_pGameType, "JUG")==0){
-		CGameControllerJUG *JUGController = dynamic_cast<CGameControllerJUG*>(GameServer()->m_pController);
-		if(JUGController){
-			if(JUGController->IsJuggernaut(m_ClientID)){
-				StrToInts(&pClientInfo->m_Clan0, 3, "JGRNT");
-			}
-		}
-	}
-	//
 	pClientInfo->m_Country = Server()->ClientCountry(m_ClientID);
 	StrToInts(&pClientInfo->m_Skin0, 6, m_TeeInfos.m_SkinName);
 	pClientInfo->m_UseCustomColor = m_TeeInfos.m_UseCustomColor;
 	pClientInfo->m_ColorBody = m_TeeInfos.m_ColorBody;
 	pClientInfo->m_ColorFeet = m_TeeInfos.m_ColorFeet;
+
+	//JUGGERNAUT - Check if player is juggernaut, change clan
+	if(str_comp(GameServer()->m_pController->m_pGameType, "JUG")==0){
+		CGameControllerJUG *JUGController = dynamic_cast<CGameControllerJUG*>(GameServer()->m_pController);
+		if(JUGController){
+			if(JUGController->IsJuggernaut(m_ClientID)){
+				StrToInts(&pClientInfo->m_Clan0, 3, "JUG");
+				pClientInfo->m_UseCustomColor = 1;
+				pClientInfo->m_ColorBody = 16776960;
+				pClientInfo->m_ColorFeet = 64000;
+			}
+		}
+	}
+	//
 
 	CNetObj_PlayerInfo *pPlayerInfo = static_cast<CNetObj_PlayerInfo *>(Server()->SnapNewItem(NETOBJTYPE_PLAYERINFO, m_ClientID, sizeof(CNetObj_PlayerInfo)));
 	if(!pPlayerInfo)

@@ -65,7 +65,7 @@ int CGameControllerJUG::OnCharacterDeath(class CCharacter *pVictim, class CPlaye
 	{
 		if(pKiller && pVictim)
 		{
-			if(pKiller->GetCharacter())
+			if(current_jug->GetCID() == pVictim->GetPlayer()->GetCID())
 			{
 				NewJuggernaut(pKiller);
 			}

@@ -129,7 +129,11 @@ void CGameControllerJUG::NewJuggernaut(class CPlayer *pPlayer)
 
 	//Give 50 health
 	if(current_jug->GetCharacter())
+	{
 		current_jug->GetCharacter()->SetHealth(g_Config.m_JugHealth);
+		if(g_Config.m_JugHammer)
+			current_jug->GetCharacter()->GiveWeapon(WEAPON_HAMMER, -1);
+	}
 
 	m_bCriticalHealth = false;
 	char buf[512];
@@ -144,7 +148,16 @@ void CGameControllerJUG::NewJuggernaut(class CPlayer *pPlayer)
 
 void CGameControllerJUG::OnCharacterSpawn(class CCharacter *pChr)
 {
-		IGameController::OnCharacterSpawn(pChr);
+		// default health
+		pChr->IncreaseHealth(10);
+
+		pChr->GiveWeapon(WEAPON_HAMMER, -1);
+		if(!g_Config.m_JugHammer || !IsJuggernaut(pChr->GetPlayer()->GetCID()))
+		{
+			// give default weapons
+			pChr->GiveWeapon(WEAPON_GUN, 10);
+	  }
+
 		if(current_jug && pChr && pChr->GetPlayer() && pChr->GetPlayer()->GetCID() == current_jug->GetCID()){
 			current_jug->GetCharacter()->SetHealth(g_Config.m_JugHealth);
 		}
@@ -163,7 +176,7 @@ int CGameControllerJUG::OnCharacterDeath(class CCharacter *pVictim, class CPlaye
 		}
   }
 
-	if(Weapon != WEAPON_GAME && Weapon != WEAPON_SELF && Weapon != WEAPON_WORLD)
+	if(Weapon != WEAPON_GAME && Weapon != WEAPON_WORLD)
 	{
 		if(pKiller && pVictim)
 		{

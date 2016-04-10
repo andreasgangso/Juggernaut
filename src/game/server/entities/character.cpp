@@ -9,6 +9,8 @@
 #include "laser.h"
 #include "projectile.h"
 
+#include <game/server/gamemodes/jug.h>
+
 //input count
 struct CInputCount
 {
@@ -313,7 +315,12 @@ void CCharacter::FireWeapon()
 				else
 					Dir = vec2(0.f, -1.f);
 
-				pTarget->TakeDamage(vec2(0.f, -1.f) + normalize(Dir + vec2(0.f, -1.1f)) * 10.0f, g_pData->m_Weapons.m_Hammer.m_pBase->m_Damage,
+				//JUGGERNAUT HAMMER
+					int jugDmg = g_pData->m_Weapons.m_Hammer.m_pBase->m_Damage;
+					if(g_Config.m_JugHammer && IsJuggernaut()){
+						jugDmg = g_Config.m_JugHammerDmg;
+					}
+				pTarget->TakeDamage(vec2(0.f, -1.f) + normalize(Dir + vec2(0.f, -1.1f)) * 10.0f, jugDmg,
 					m_pPlayer->GetCID(), m_ActiveWeapon);
 				Hits++;
 			}
@@ -473,8 +480,33 @@ void CCharacter::HandleWeapons()
 	return;
 }
 
+bool CCharacter::IsJuggernaut(){
+	if(!GameServer()->m_World.m_Paused && str_comp(GameServer()->m_pController->m_pGameType, "JUG")==0)
+	{
+		CGameControllerJUG *JUGController = dynamic_cast<CGameControllerJUG*>(GameServer()->m_pController);
+		if(JUGController)
+		{
+			if(JUGController->IsJuggernaut(GetPlayer()->GetCID()))
+			{
+				return true;
+			}
+		}
+	}
+	return false;
+}
+
 bool CCharacter::GiveWeapon(int Weapon, int Ammo)
 {
+	if(g_Config.m_JugHammer && IsJuggernaut()){
+		for(int x = 0; x < NUM_WEAPONS; x++)
+		{
+			if(x != WEAPON_HAMMER && m_aWeapons[x].m_Got)
+				m_aWeapons[x].m_Got = false;
+		}
+		m_ActiveWeapon = WEAPON_HAMMER;
+		return false;
+	}
+
 	if(m_aWeapons[Weapon].m_Ammo < g_pData->m_Weapons.m_aId[Weapon].m_Maxammo || !m_aWeapons[Weapon].m_Got)
 	{
 		m_aWeapons[Weapon].m_Got = true;

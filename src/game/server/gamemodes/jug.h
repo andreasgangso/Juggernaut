@@ -17,8 +17,12 @@ public:
 	virtual void Tick();
 	void NewJuggernaut(class CPlayer *pPlayer = NULL);
 	bool IsJuggernaut(int ClientID);
+	void DoCountDown(int pNewJugCID = -1);
 
 	CPlayer* current_jug = NULL;
+	CPlayer* m_pLastJug = NULL;
+	int m_CountDown[2];
+	bool m_bCriticalHealth = false;
 
 private:
 	CGameContext *m_pGameServer;

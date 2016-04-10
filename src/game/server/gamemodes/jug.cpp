@@ -10,21 +10,45 @@ CGameControllerJUG::CGameControllerJUG(class CGameContext *pGameServer) : IGameC
 {
 	m_pGameServer = pGameServer;
 	m_pGameType = "JUG";
+	m_CountDown[0] = 0;
+	m_CountDown[1] = -1;
+}
+
+void CGameControllerJUG::DoCountDown(int pNewJugCID)
+{
+	if(current_jug)
+	{
+		m_pLastJug = current_jug;
+		current_jug = NULL;
+	}
+
+	//if delaytime is set to 0
+	if(g_Config.m_JugDelayTime == 0)
+	{
+		if(pNewJugCID != -1) //no player supplied
+			NewJuggernaut(GameServer()->m_apPlayers[m_CountDown[1]]);
+		else NewJuggernaut();
+	}
+	else if(!m_CountDown[0]) // If countdown is not running
+	{
+		m_CountDown[0] = Server()->TickSpeed()*g_Config.m_JugDelayTime;
+		m_CountDown[1] = pNewJugCID;
+	}
 }
 
 //-------- ROUND HANDLING
-
 void CGameControllerJUG::StartRound()
 {
 	IGameController::StartRound();
-
-	NewJuggernaut();
+	DoCountDown();
 }
 
 void CGameControllerJUG::EndRound()
 {
 	IGameController::EndRound();
 	current_jug = NULL;
+	m_pLastJug = NULL;
+	m_bCriticalHealth = false;
 	m_iLastDmgCID = -1;
 }
 
@@ -47,13 +71,17 @@ bool CGameControllerJUG::IsJuggernaut(int ClientID)
 		return false;
 	}else
 	{ //if no juggernaut
-		NewJuggernaut();
+		DoCountDown();
 		return false;
 	}
 }
 
 void CGameControllerJUG::NewJuggernaut(class CPlayer *pPlayer)
 {
+	//No.. There will be no new juggernaut during countdowns! Thank you
+	if(m_CountDown[0])
+		return;
+
 	//Random juggernaut
 	if(!pPlayer)
 	{
@@ -70,24 +98,25 @@ void CGameControllerJUG::NewJuggernaut(class CPlayer *pPlayer)
 		if(count < 1)
 		{
 			current_jug = NULL;
+			m_bCriticalHealth = false;
 			return;
 		}
 
 		int random_index = 0;
-		if(current_jug && count > 1)
-		{ //if there's already a juggernaut, and more than 1 player
-			while (CIDs[random_index] == current_jug->GetCID())
+		if(m_pLastJug && count > 1)
+		{ //if there was a juggernaut, and more than 1 player
+			while (CIDs[random_index] == m_pLastJug->GetCID())
 			{ //make sure new juggernaut is not same as last one
 				random_index = rand() % count;
 			}
 	  }
-		else if (!current_jug)//if theres no juggernaut but there are players
+		else if (!m_pLastJug)//if theres was no juggernaut but there are players
 			int random_index = rand() % count;
-		else { // if theres a juggernaut and only one player - and a new jug is requested? Well then
+		else { // if theres was no juggernaut and only one player - and a new jug is requested? Well then
 			EndRound(); //just restart
 			return;
 		}
-
+		//if player is not null
 		if(GameServer()->m_apPlayers[CIDs[random_index]])
 			pPlayer = GameServer()->m_apPlayers[CIDs[random_index]];
 		else return;
@@ -100,8 +129,9 @@ void CGameControllerJUG::NewJuggernaut(class CPlayer *pPlayer)
 
 	//Give 50 health
 	if(current_jug->GetCharacter())
-		current_jug->GetCharacter()->SetHealth(50);
+		current_jug->GetCharacter()->SetHealth(g_Config.m_JugHealth);
 
+	m_bCriticalHealth = false;
 	char buf[512];
 	str_format(buf, sizeof(buf), "%s is the new Juggernaut!", GameServer()->Server()->ClientName(current_jug->GetCID()));
 	GameServer()->CreateSoundGlobal(SOUND_CTF_CAPTURE);
@@ -116,7 +146,7 @@ void CGameControllerJUG::OnCharacterSpawn(class CCharacter *pChr)
 {
 		IGameController::OnCharacterSpawn(pChr);
 		if(current_jug && pChr && pChr->GetPlayer() && pChr->GetPlayer()->GetCID() == current_jug->GetCID()){
-			current_jug->GetCharacter()->SetHealth(50);
+			current_jug->GetCharacter()->SetHealth(g_Config.m_JugHealth);
 		}
 }
 
@@ -129,7 +159,7 @@ int CGameControllerJUG::OnCharacterDeath(class CCharacter *pVictim, class CPlaye
 		//If it was a disconnect/teamswitch, and it was juggernaut -> New random juggernaut
 		if(Weapon == WEAPON_GAME && IsJuggernaut(pVictim->GetPlayer()->GetCID()))
 		{
-			NewJuggernaut();
+			DoCountDown();
 		}
   }
 
@@ -142,10 +172,10 @@ int CGameControllerJUG::OnCharacterDeath(class CCharacter *pVictim, class CPlaye
 				if(pVictim->GetPlayer()->GetCID() == pKiller->GetCID()) //if suicide
 				{
 					if(m_iLastDmgCID != -1) //if he's not retarded, meaning someone else has actually dealt damage against him
-						NewJuggernaut(GameServer()->m_apPlayers[m_iLastDmgCID]); //make last dmg dealer new juggernaut
-					else NewJuggernaut(); //else he's retarded - pick someone else
+						DoCountDown(m_iLastDmgCID); //make last dmg dealer new juggernaut
+					else DoCountDown(); //else he's retarded - pick someone else
 				}
-				else NewJuggernaut(pKiller);
+				else DoCountDown(pKiller->GetCID());
 			}
 		}
 	}
@@ -173,4 +203,35 @@ bool CGameControllerJUG::IsFriendlyFire(int ClientID1, int ClientID2)
 void CGameControllerJUG::Tick()
 {
 	IGameController::Tick();
+
+	// do countdown if counter is positive, and game isnt paused
+	if(m_CountDown[0] && !GameServer()->m_World.m_Paused)
+	{
+		int beforeSec = m_CountDown[0]/Server()->TickSpeed();
+		m_CountDown[0]--;
+		int afterSec = m_CountDown[0]/Server()->TickSpeed();
+		if(!m_CountDown[0])
+		{ //when countdown hits 0:
+			if(m_CountDown[1] != -1)
+				NewJuggernaut(GameServer()->m_apPlayers[m_CountDown[1]]);
+			else NewJuggernaut();
+		}else if (beforeSec != afterSec){ //check if whole number
+			GameServer()->CreateSoundGlobal(SOUND_WEAPON_NOAMMO);
+		}
+	}
+
+	//if not paused, valid juggernaut
+	if(!GameServer()->m_World.m_Paused && current_jug && current_jug->GetCharacter())
+	{
+		//if juggernaut has less than 10hp
+		if(!m_bCriticalHealth && current_jug->GetCharacter()->GetHealth() <= 10)
+		{
+			m_bCriticalHealth = true;
+			char buf[] = "The Juggernaut is at CRITICAL health!";
+			GameServer()->CreateSoundGlobal(SOUND_CTF_GRAB_EN);
+			GameServer()->SendChat(-1, CGameContext::CHAT_ALL, buf);
+			GameServer()->SendBroadcast(buf, -1);
+		}
+	}
+
 }

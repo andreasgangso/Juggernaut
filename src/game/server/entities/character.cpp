@@ -682,6 +682,11 @@ bool CCharacter::SetHealth(int Amount){
 	return true;
 }
 
+int CCharacter::GetHealth(){
+	return m_Health;
+}
+//JUGGERNAUT
+
 bool CCharacter::IncreaseHealth(int Amount)
 {
 	if(m_Health >= 10)

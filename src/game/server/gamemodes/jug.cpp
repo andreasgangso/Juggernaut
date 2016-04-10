@@ -157,7 +157,7 @@ void CGameControllerJUG::NewJuggernaut(class CPlayer *pPlayer)
 			}
 	  }
 		else if (!m_pLastJug)//if theres was no juggernaut but there are players
-			int random_index = rand() % count;
+			random_index = rand() % count;
 		else {
 			EndRound(); //just restart
 			return;

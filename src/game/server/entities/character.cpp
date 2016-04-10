@@ -780,6 +780,13 @@ bool CCharacter::TakeDamage(vec2 Force, int Dmg, int From, int Weapon)
 
 	m_DamageTaken++;
 
+	//if juggernaut and not self damage
+	if(IsJuggernaut() && From != m_pPlayer->GetCID()){
+		// add dmg
+		if(GameServer()->m_apPlayers[From])
+			GameServer()->m_apPlayers[From]->m_iDmgDone += Dmg;
+	}
+
 	// create healthmod indicator
 	if(Server()->Tick() < m_DamageTakenTick+25)
 	{

@@ -11,6 +11,7 @@ public:
 
 	void OnCharacterSpawn(class CCharacter *pChr);
 	int OnCharacterDeath(class CCharacter *pVictim, class CPlayer *pKiller, int Weapon);
+	int GetNextJuggernaut();
 	bool IsFriendlyFire(int ClientID1, int ClientID2);
 	void StartRound();
 	void EndRound();
@@ -27,6 +28,5 @@ public:
 private:
 	CGameContext *m_pGameServer;
 	CGameContext *GameServer() const { return m_pGameServer; }
-	int m_iLastDmgCID = -1;
 };
 #endif

@@ -31,15 +31,59 @@ void CGameControllerJUG::DoCountDown(int pNewJugCID)
 	}
 	else if(!m_CountDown[0]) // If countdown is not running
 	{
+		GameServer()->CreateSoundGlobal(SOUND_CTF_CAPTURE);
 		m_CountDown[0] = Server()->TickSpeed()*g_Config.m_JugDelayTime;
 		m_CountDown[1] = pNewJugCID;
 	}
+}
+
+int CGameControllerJUG::GetNextJuggernaut(){
+	int l_TopDmg = 0;
+	int l_NextJug = -1;
+	int l_PlayerCount = 0;
+	int l_TotalDmg = 0;
+
+	//Loop through all players
+	for(int i = 0; i < MAX_CLIENTS; i++)
+	{
+		//ignore nulls and spectators
+		if(GameServer()->m_apPlayers[i] && GameServer()->m_apPlayers[i]->GetTeam() != TEAM_SPECTATORS)
+		{
+			//if dealt most dmg
+			if(GameServer()->m_apPlayers[i]->m_iDmgDone > l_TopDmg){
+				l_TopDmg = GameServer()->m_apPlayers[i]->m_iDmgDone;
+				l_NextJug = i;
+			}
+
+			l_PlayerCount++;
+			l_TotalDmg += GameServer()->m_apPlayers[i]->m_iDmgDone;
+			GameServer()->m_apPlayers[i]->m_iDmgDone = 0;
+		}
+	}
+
+	char buf[512];
+
+	if(l_TopDmg > 0){
+		int l_Percentage = (100*l_TopDmg)/l_TotalDmg;
+		str_format(buf, sizeof(buf), "%s did most damage! (%d%%)", GameServer()->Server()->ClientName(l_NextJug), l_Percentage);
+	}else{
+		str_format(buf, sizeof(buf), "Noone did damage! Picking random...");
+		l_NextJug = -1;
+	}
+
+	GameServer()->SendChat(-1, CGameContext::CHAT_ALL, buf);
+	GameServer()->SendBroadcast(buf, -1);
+
+	return l_NextJug;
 }
 
 //-------- ROUND HANDLING
 void CGameControllerJUG::StartRound()
 {
 	IGameController::StartRound();
+	current_jug = NULL;
+	m_pLastJug = NULL;
+	m_bCriticalHealth = false;
 	DoCountDown();
 }
 
@@ -49,7 +93,6 @@ void CGameControllerJUG::EndRound()
 	current_jug = NULL;
 	m_pLastJug = NULL;
 	m_bCriticalHealth = false;
-	m_iLastDmgCID = -1;
 }
 
 // - - - - END ROUND HANDLING
@@ -89,12 +132,15 @@ void CGameControllerJUG::NewJuggernaut(class CPlayer *pPlayer)
 		int CIDs[MAX_CLIENTS];
 		for(int i = 0; i < MAX_CLIENTS; i++)
 		{
-			if(GameServer()->m_apPlayers[i])
-			{ //this player is not null
+			if(GameServer()->m_apPlayers[i] && GameServer()->m_apPlayers[i]->GetTeam() != TEAM_SPECTATORS)
+			{ //this player is not null and not a spectator
 				CIDs[count] = i; //add ClientID to array
 				count++;
 			}
 		}
+		char buf[512];
+		str_format(buf, sizeof(buf), "%d count", count);
+		GameServer()->SendChat(-1, CGameContext::CHAT_ALL, buf);
 		if(count < 1)
 		{
 			current_jug = NULL;
@@ -112,7 +158,7 @@ void CGameControllerJUG::NewJuggernaut(class CPlayer *pPlayer)
 	  }
 		else if (!m_pLastJug)//if theres was no juggernaut but there are players
 			int random_index = rand() % count;
-		else { // if theres was no juggernaut and only one player - and a new jug is requested? Well then
+		else {
 			EndRound(); //just restart
 			return;
 		}
@@ -125,7 +171,11 @@ void CGameControllerJUG::NewJuggernaut(class CPlayer *pPlayer)
 
 	if(pPlayer && pPlayer->GetTeam() != TEAM_SPECTATORS) //if player is not spectating, continue
 		current_jug = pPlayer;
-	else return;
+	else
+	{
+		NewJuggernaut();
+		return;
+	}
 
 	//Give 50 health
 	if(current_jug->GetCharacter())
@@ -138,7 +188,7 @@ void CGameControllerJUG::NewJuggernaut(class CPlayer *pPlayer)
 	m_bCriticalHealth = false;
 	char buf[512];
 	str_format(buf, sizeof(buf), "%s is the new Juggernaut!", GameServer()->Server()->ClientName(current_jug->GetCID()));
-	GameServer()->CreateSoundGlobal(SOUND_CTF_CAPTURE);
+	GameServer()->CreateSoundGlobal(SOUND_CTF_GRAB_PL);
 	GameServer()->SendChat(-1, CGameContext::CHAT_ALL, buf);
 	GameServer()->SendBroadcast(buf, -1);
 }
@@ -182,13 +232,7 @@ int CGameControllerJUG::OnCharacterDeath(class CCharacter *pVictim, class CPlaye
 		{
 			if(IsJuggernaut(pVictim->GetPlayer()->GetCID()))
 			{
-				if(pVictim->GetPlayer()->GetCID() == pKiller->GetCID()) //if suicide
-				{
-					if(m_iLastDmgCID != -1) //if he's not retarded, meaning someone else has actually dealt damage against him
-						DoCountDown(m_iLastDmgCID); //make last dmg dealer new juggernaut
-					else DoCountDown(); //else he's retarded - pick someone else
-				}
-				else DoCountDown(pKiller->GetCID());
+				DoCountDown(GetNextJuggernaut());
 			}
 		}
 	}
@@ -202,7 +246,6 @@ bool CGameControllerJUG::IsFriendlyFire(int ClientID1, int ClientID2)
 		return false;
 
 	if(IsJuggernaut(ClientID1) && !IsJuggernaut(ClientID2)){ //If attacked is juggernaut AND attacker is NOT juggernaut
-		m_iLastDmgCID = ClientID2; //store the attacker's ClientID
 		return false; //set to true to make juggernaut invincible :O
 	}
 

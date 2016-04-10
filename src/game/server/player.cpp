@@ -131,8 +131,8 @@ void CPlayer::Snap(int SnappingClient)
 	pClientInfo->m_ColorBody = m_TeeInfos.m_ColorBody;
 	pClientInfo->m_ColorFeet = m_TeeInfos.m_ColorFeet;
 
-	//JUGGERNAUT - Check if player is juggernaut, change clan
-	if(str_comp(GameServer()->m_pController->m_pGameType, "JUG")==0){
+	//JUGGERNAUT - Check if player is juggernaut, set clan, name and color (only when not paused)
+	if(!GameServer()->m_World.m_Paused && str_comp(GameServer()->m_pController->m_pGameType, "JUG")==0){
 		CGameControllerJUG *JUGController = dynamic_cast<CGameControllerJUG*>(GameServer()->m_pController);
 		if(JUGController){
 			if(JUGController->IsJuggernaut(m_ClientID)){

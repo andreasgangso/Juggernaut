@@ -1,4 +1,7 @@
 .bam/0000000000000000
+objs/game/*
+objs/engine/*
+objs/base/*
 config.lua
 teeworlds_srv.exe
 start.bat

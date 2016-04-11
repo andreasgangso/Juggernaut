@@ -132,28 +132,26 @@ void CPlayer::Snap(int SnappingClient)
 	pClientInfo->m_ColorFeet = m_TeeInfos.m_ColorFeet;
 
 	//JUGGERNAUT - Check if player is juggernaut, set clan, name and color (only when not paused)
-	if(!GameServer()->m_World.m_Paused && str_comp(GameServer()->m_pController->m_pGameType, "JUG")==0){
-		CGameControllerJUG *JUGController = dynamic_cast<CGameControllerJUG*>(GameServer()->m_pController);
-		if(JUGController){
-			pClientInfo->m_UseCustomColor = 1;
-			if(JUGController->IsJuggernaut(m_ClientID)){
-				StrToInts(&pClientInfo->m_Clan0, 3, "JUG");
-				int health = m_pCharacter->GetHealth();
+	//CGameControllerJUG *JUGController = GameServer()->m_pController->Juggernaut(); //returns NULL if not "JUG" gametype
+	if(GameServer()->m_pController->m_pGameType == "JUG" && !GameServer()->m_World.m_Paused){
+		pClientInfo->m_UseCustomColor = 1;
+		if(GameServer()->m_pController->IsJuggernaut(m_ClientID)){
+			StrToInts(&pClientInfo->m_Clan0, 3, "JUG");
+			int health = m_pCharacter->GetHealth();
 
-				int aRainbowColor = 0;
-				aRainbowColor = health*0.8f; //Fade from yellow (40) to red (0). 50health*0.8=40 :)
-				pClientInfo->m_ColorBody = aRainbowColor * 0x010000 + 0xff00;
-				pClientInfo->m_ColorFeet = aRainbowColor * 0x010000 + 0xff00;
+			int aRainbowColor = 0;
+			aRainbowColor = health*0.8f; //Fade from yellow (40) to red (0). 50health*0.8=40 :)
+			pClientInfo->m_ColorBody = aRainbowColor * 0x010000 + 0xff00;
+			pClientInfo->m_ColorFeet = aRainbowColor * 0x010000 + 0xff00;
 
-				if(health <= 10){
-					pClientInfo->m_ColorBody = 16776960;
-					pClientInfo->m_ColorFeet = 16776960;
-				}
-			}else{
-				StrToInts(&pClientInfo->m_Clan0, 3, "HUNTER");
-				pClientInfo->m_ColorBody = 10223467;
-				pClientInfo->m_ColorFeet = 10223467;
+			if(health <= 10){
+				pClientInfo->m_ColorBody = 16776960;
+				pClientInfo->m_ColorFeet = 16776960;
 			}
+		}else{
+			StrToInts(&pClientInfo->m_Clan0, 3, "HUNTER");
+			pClientInfo->m_ColorBody = 10223467;
+			pClientInfo->m_ColorFeet = 10223467;
 		}
 	}
 	//

@@ -317,7 +317,7 @@ void CCharacter::FireWeapon()
 
 				//JUGGERNAUT HAMMER
 					int jugDmg = g_pData->m_Weapons.m_Hammer.m_pBase->m_Damage;
-					if(g_Config.m_JugHammer && IsJuggernaut()){
+					if(g_Config.m_JugHammer && GameServer()->m_pController->IsJuggernaut(GetPlayer()->GetCID())){
 						jugDmg = g_Config.m_JugHammerDmg;
 					}
 				pTarget->TakeDamage(vec2(0.f, -1.f) + normalize(Dir + vec2(0.f, -1.1f)) * 10.0f, jugDmg,
@@ -480,24 +480,9 @@ void CCharacter::HandleWeapons()
 	return;
 }
 
-bool CCharacter::IsJuggernaut(){
-	if(!GameServer()->m_World.m_Paused && str_comp(GameServer()->m_pController->m_pGameType, "JUG")==0)
-	{
-		CGameControllerJUG *JUGController = dynamic_cast<CGameControllerJUG*>(GameServer()->m_pController);
-		if(JUGController)
-		{
-			if(JUGController->IsJuggernaut(GetPlayer()->GetCID()))
-			{
-				return true;
-			}
-		}
-	}
-	return false;
-}
-
 bool CCharacter::GiveWeapon(int Weapon, int Ammo)
 {
-	if(g_Config.m_JugHammer && IsJuggernaut()){
+	if(g_Config.m_JugHammer && GameServer()->m_pController->IsJuggernaut(GetPlayer()->GetCID())){
 		for(int x = 0; x < NUM_WEAPONS; x++)
 		{
 			if(x != WEAPON_HAMMER && m_aWeapons[x].m_Got)
@@ -781,7 +766,7 @@ bool CCharacter::TakeDamage(vec2 Force, int Dmg, int From, int Weapon)
 	m_DamageTaken++;
 
 	//if juggernaut and not self damage
-	if(IsJuggernaut() && From != m_pPlayer->GetCID()){
+	if(GameServer()->m_pController->IsJuggernaut(GetPlayer()->GetCID()) && From != m_pPlayer->GetCID()){
 		// add dmg
 		if(GameServer()->m_apPlayers[From])
 			GameServer()->m_apPlayers[From]->m_iDmgDone += Dmg;

@@ -146,6 +146,7 @@ public:
 	virtual void PostReset();
 
 	virtual CGameControllerJUG* Juggernaut();
+	virtual bool IsJuggernaut(int ClientID);
 };
 
 #endif

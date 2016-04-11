@@ -341,6 +341,11 @@ CGameControllerJUG* IGameController::Juggernaut(){
 	return NULL;
 }
 
+bool IGameController::IsJuggernaut(int ClientID){
+	//Not JUG gamemode
+	return false;
+}
+
 int IGameController::OnCharacterDeath(class CCharacter *pVictim, class CPlayer *pKiller, int Weapon)
 {
 	// do scoreing

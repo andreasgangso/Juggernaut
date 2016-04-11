@@ -217,24 +217,9 @@ int CGameControllerJUG::OnCharacterDeath(class CCharacter *pVictim, class CPlaye
 {
 	IGameController::OnCharacterDeath(pVictim, pKiller, Weapon);
 
-	if(pVictim && pVictim->GetPlayer())
-	{
-		//If it was a disconnect/teamswitch, and it was juggernaut -> New random juggernaut
-		if(Weapon == WEAPON_GAME && IsJuggernaut(pVictim->GetPlayer()->GetCID()))
-		{
-			DoCountDown();
-		}
-  }
+	if(IsJuggernaut(pVictim->GetPlayer()->GetCID()){
 
-	if(Weapon != WEAPON_GAME && Weapon != WEAPON_WORLD)
-	{
-		if(pKiller && pVictim)
-		{
-			if(IsJuggernaut(pVictim->GetPlayer()->GetCID()))
-			{
-				DoCountDown(GetNextJuggernaut());
-			}
-		}
+		DoCountDown(GetNextJuggernaut());
 	}
 
 	return 0;

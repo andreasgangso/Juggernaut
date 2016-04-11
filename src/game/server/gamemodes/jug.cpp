@@ -209,7 +209,7 @@ void CGameControllerJUG::OnCharacterSpawn(class CCharacter *pChr)
 		pChr->GiveWeapon(WEAPON_HAMMER, -1);
 		if(!g_Config.m_JugHammer || !IsJuggernaut(pChr->GetPlayer()->GetCID()))
 		{
-			// give default weapons
+			// give default weapons for everyone except juggernaut
 			pChr->GiveWeapon(WEAPON_GUN, 10);
 	  }
 

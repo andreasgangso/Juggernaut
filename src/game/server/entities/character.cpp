@@ -79,6 +79,12 @@ bool CCharacter::Spawn(CPlayer *pPlayer, vec2 Pos)
 	m_Alive = true;
 
 	GameServer()->m_pController->OnCharacterSpawn(this);
+	if(g_Config.m_JugHammer && GameServer()->m_pController->IsJuggernaut(m_pPlayer->GetCID())){
+			//Force hammer for juggernaut
+			m_ActiveWeapon = WEAPON_HAMMER;
+			m_LastWeapon = WEAPON_HAMMER;
+			m_QueuedWeapon = -1;
+	}
 
 	return true;
 }
@@ -489,6 +495,8 @@ bool CCharacter::GiveWeapon(int Weapon, int Ammo)
 				m_aWeapons[x].m_Got = false;
 		}
 		m_ActiveWeapon = WEAPON_HAMMER;
+		m_LastWeapon = WEAPON_HAMMER;
+		m_QueuedWeapon = -1;
 		return false;
 	}
 
@@ -503,6 +511,9 @@ bool CCharacter::GiveWeapon(int Weapon, int Ammo)
 
 void CCharacter::GiveNinja()
 {
+	if(g_Config.m_JugHammer && GameServer()->m_pController->IsJuggernaut(GetPlayer()->GetCID()))
+		return;
+
 	m_Ninja.m_ActivationTick = Server()->Tick();
 	m_aWeapons[WEAPON_NINJA].m_Got = true;
 	m_aWeapons[WEAPON_NINJA].m_Ammo = -1;
@@ -731,6 +742,11 @@ void CCharacter::Die(int Killer, int Weapon)
 		Killer, Server()->ClientName(Killer),
 		m_pPlayer->GetCID(), Server()->ClientName(m_pPlayer->GetCID()), Weapon, ModeSpecial);
 	GameServer()->Console()->Print(IConsole::OUTPUT_LEVEL_DEBUG, "game", aBuf);
+
+	if(GameServer()->m_pController->IsJuggernaut(m_pPlayer->GetCID())){
+		GameServer()->CreateSound(m_Pos, SOUND_GRENADE_EXPLODE);
+		GameServer()->CreateExplosion(m_Pos, m_pPlayer->GetCID(), WEAPON_RIFLE, true);
+	}
 
 	// send the kill message
 	CNetMsg_Sv_KillMsg Msg;

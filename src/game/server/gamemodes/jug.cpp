@@ -222,7 +222,7 @@ int CGameControllerJUG::OnCharacterDeath(class CCharacter *pVictim, class CPlaye
 {
 	IGameController::OnCharacterDeath(pVictim, pKiller, Weapon);
 
-	if(IsJuggernaut(pVictim->GetPlayer()->GetCID()){
+	if(IsJuggernaut(pVictim->GetPlayer()->GetCID())){
 
 		DoCountDown(GetNextJuggernaut());
 	}

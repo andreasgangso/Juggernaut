@@ -5,6 +5,8 @@
 
 #include <base/vmath.h>
 
+class CGameControllerJUG;
+
 /*
 	Class: Game Controller
 		Controls the main game logic. Keeping track of team and player score,

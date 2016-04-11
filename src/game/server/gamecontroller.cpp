@@ -9,7 +9,6 @@
 #include "gamecontroller.h"
 #include "gamecontext.h"
 
-
 IGameController::IGameController(class CGameContext *pGameServer)
 {
 	m_pGameServer = pGameServer;
@@ -339,7 +338,7 @@ void IGameController::OnPlayerInfoChange(class CPlayer *pP)
 }
 
 CGameControllerJUG* IGameController::Juggernaut(){
-	return null;
+	return NULL;
 }
 
 int IGameController::OnCharacterDeath(class CCharacter *pVictim, class CPlayer *pKiller, int Weapon)

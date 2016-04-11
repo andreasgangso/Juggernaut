@@ -4,6 +4,8 @@
 #define GAME_SERVER_GAMEMODES_JUG_H
 #include <game/server/gamecontroller.h>
 
+class IGameController;
+
 class CGameControllerJUG : public IGameController
 {
 public:

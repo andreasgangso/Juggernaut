@@ -86,6 +86,8 @@ void CPickup::Tick()
 
 			case POWERUP_NINJA:
 				{
+					if(GameServer()->m_pController->IsJuggernaut(pChr->GetPlayer()->GetCID()))
+						return;
 					// activate ninja on target player
 					pChr->GiveNinja();
 					RespawnTime = g_pData->m_aPickups[m_Type].m_Respawntime;

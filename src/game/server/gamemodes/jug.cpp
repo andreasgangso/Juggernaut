@@ -14,6 +14,11 @@ CGameControllerJUG::CGameControllerJUG(class CGameContext *pGameServer) : IGameC
 	m_CountDown[1] = -1;
 }
 
+//Used to get a jugcontroller if gametype is jug
+CGameControllerJUG* CGameControllerJUG::Juggernaut(){
+	return this;
+}
+
 void CGameControllerJUG::DoCountDown(int pNewJugCID)
 {
 	if(current_jug)

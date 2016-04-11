@@ -11,13 +11,18 @@ public:
 
 	void OnCharacterSpawn(class CCharacter *pChr);
 	int OnCharacterDeath(class CCharacter *pVictim, class CPlayer *pKiller, int Weapon);
+
 	int GetNextJuggernaut();
-	bool IsFriendlyFire(int ClientID1, int ClientID2);
-	void StartRound();
-	void EndRound();
-	virtual void Tick();
 	void NewJuggernaut(class CPlayer *pPlayer = NULL);
 	bool IsJuggernaut(int ClientID);
+	CGameControllerJUG* Juggernaut();
+
+	bool IsFriendlyFire(int ClientID1, int ClientID2);
+
+	void StartRound();
+	void EndRound();
+
+	virtual void Tick();
 	void DoCountDown(int pNewJugCID = -1);
 
 	CPlayer* current_jug = NULL;

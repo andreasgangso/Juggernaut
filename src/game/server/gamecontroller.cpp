@@ -338,6 +338,9 @@ void IGameController::OnPlayerInfoChange(class CPlayer *pP)
 	}
 }
 
+CGameControllerJUG* IGameController::Juggernaut(){
+	return null;
+}
 
 int IGameController::OnCharacterDeath(class CCharacter *pVictim, class CPlayer *pKiller, int Weapon)
 {

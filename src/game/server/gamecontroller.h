@@ -142,6 +142,8 @@ public:
 	int ClampTeam(int Team);
 
 	virtual void PostReset();
+
+	virtual CGameControllerJUG* Juggernaut();
 };
 
 #endif

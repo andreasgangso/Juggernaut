@@ -22,10 +22,11 @@ public:
 	bool IsFriendlyFire(int ClientID1, int ClientID2);
 
 	void StartRound();
-	void EndRound();
+	void EndRound(bool pQuickStart = false);
 
 	virtual void Tick();
 	void DoCountDown(int pNewJugCID = -1);
+	int CheckPlayerCount();
 
 	CPlayer* current_jug = NULL;
 	CPlayer* m_pLastJug = NULL;
@@ -35,5 +36,6 @@ public:
 private:
 	CGameContext *m_pGameServer;
 	CGameContext *GameServer() const { return m_pGameServer; }
+	int m_iPlayerCheck = 1;
 };
 #endif

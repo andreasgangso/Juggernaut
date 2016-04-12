@@ -147,6 +147,8 @@ public:
 
 	virtual CGameControllerJUG* Juggernaut();
 	virtual bool IsJuggernaut(int ClientID);
+
+	int m_GameOverTime = 10;
 };
 
 #endif

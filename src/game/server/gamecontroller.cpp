@@ -18,6 +18,7 @@ IGameController::IGameController(class CGameContext *pGameServer)
 	//
 	DoWarmup(g_Config.m_SvWarmup);
 	m_GameOverTick = -1;
+	m_GameOverTime = g_Config.m_SvGameOverTime;
 	m_SuddenDeath = 0;
 	m_RoundStartTick = Server()->Tick();
 	m_RoundCount = 0;
@@ -428,12 +429,12 @@ void IGameController::Tick()
 
 	if(m_GameOverTick != -1)
 	{
-		// game over.. wait for restart
-		if(Server()->Tick() > m_GameOverTick+Server()->TickSpeed()*10)
+		if(Server()->Tick() > m_GameOverTick+Server()->TickSpeed()*m_GameOverTime)
 		{
 			CycleMap();
 			StartRound();
 			m_RoundCount++;
+			m_GameOverTime = g_Config.m_SvGameOverTime;
 		}
 	}
 

@@ -19,6 +19,26 @@ CGameControllerJUG* CGameControllerJUG::Juggernaut(){
 	return this;
 }
 
+int CGameControllerJUG::CheckPlayerCount(){
+	int count = 0;
+	for(int i = 0; i < MAX_CLIENTS; i++)
+	{
+		if(GameServer()->m_apPlayers[i] && GameServer()->m_apPlayers[i]->GetTeam() != TEAM_SPECTATORS)
+		{ //this player is not null and not a spectator
+			count++;
+		}
+	}
+
+	/*//if just one player, always:
+	if(count == 1){
+		//start countdown
+		m_iPlayerCheck = Server()->TickSpeed()*1;
+	}//if not, stop countdown
+	else m_iPlayerCheck = 0;*/
+
+	return count;
+}
+
 void CGameControllerJUG::DoCountDown(int pNewJugCID)
 {
 	if(current_jug)
@@ -26,6 +46,9 @@ void CGameControllerJUG::DoCountDown(int pNewJugCID)
 		m_pLastJug = current_jug;
 		current_jug = NULL;
 	}
+
+	if(CheckPlayerCount() < 2)
+		return;
 
 	//if delaytime is set to 0
 	if(g_Config.m_JugDelayTime == 0)
@@ -36,7 +59,6 @@ void CGameControllerJUG::DoCountDown(int pNewJugCID)
 	}
 	else if(!m_CountDown[0]) // If countdown is not running
 	{
-		GameServer()->CreateSoundGlobal(SOUND_CTF_CAPTURE);
 		m_CountDown[0] = Server()->TickSpeed()*g_Config.m_JugDelayTime;
 		m_CountDown[1] = pNewJugCID;
 	}
@@ -92,8 +114,10 @@ void CGameControllerJUG::StartRound()
 	DoCountDown();
 }
 
-void CGameControllerJUG::EndRound()
+void CGameControllerJUG::EndRound(bool pQuickStart)
 {
+	if(pQuickStart)
+		m_GameOverTime = 1; //make game over time 1 sec instead of 10sec
 	IGameController::EndRound();
 	current_jug = NULL;
 	m_pLastJug = NULL;
@@ -116,16 +140,19 @@ bool CGameControllerJUG::IsJuggernaut(int ClientID)
 			}*/
 			return true; //if player is juggernaut
 		}
-		return false;
-	}else
+	}/*else
 	{ //if no juggernaut
 		DoCountDown();
 		return false;
-	}
+	}*/
+	return false;
 }
 
 void CGameControllerJUG::NewJuggernaut(class CPlayer *pPlayer)
 {
+	if(CheckPlayerCount() < 2)
+		return;
+
 	//No.. There will be no new juggernaut during countdowns! Thank you
 	if(m_CountDown[0])
 		return;
@@ -143,9 +170,7 @@ void CGameControllerJUG::NewJuggernaut(class CPlayer *pPlayer)
 				count++;
 			}
 		}
-		char buf[512];
-		str_format(buf, sizeof(buf), "%d count", count);
-		GameServer()->SendChat(-1, CGameContext::CHAT_ALL, buf);
+
 		if(count < 1)
 		{
 			current_jug = NULL;
@@ -193,7 +218,6 @@ void CGameControllerJUG::NewJuggernaut(class CPlayer *pPlayer)
 	m_bCriticalHealth = false;
 	char buf[512];
 	str_format(buf, sizeof(buf), "%s is the new Juggernaut!", GameServer()->Server()->ClientName(current_jug->GetCID()));
-	GameServer()->CreateSoundGlobal(SOUND_CTF_GRAB_PL);
 	GameServer()->SendChat(-1, CGameContext::CHAT_ALL, buf);
 	GameServer()->SendBroadcast(buf, -1);
 }
@@ -203,6 +227,15 @@ void CGameControllerJUG::NewJuggernaut(class CPlayer *pPlayer)
 
 void CGameControllerJUG::OnCharacterSpawn(class CCharacter *pChr)
 {
+
+		if(!current_jug)
+		{
+			if(!m_CountDown[0] && CheckPlayerCount() > 1)
+			{
+				EndRound(true);
+			}
+		}
+
 		// default health
 		pChr->IncreaseHealth(10);
 
@@ -249,6 +282,23 @@ void CGameControllerJUG::Tick()
 {
 	IGameController::Tick();
 
+	if(m_iPlayerCheck)
+	{
+		m_iPlayerCheck--;
+		if(!m_iPlayerCheck)
+		{ //when countdown hits 0:
+			if(CheckPlayerCount() == 1)
+			{
+				if(current_jug){
+					m_pLastJug = NULL;
+					current_jug = NULL;
+				}
+				GameServer()->SendBroadcast("Need at least 2 players to play", -1);
+			}
+			m_iPlayerCheck = 1*Server()->TickSpeed();
+		}
+	}
+
 	// do countdown if counter is positive, and game isnt paused
 	if(m_CountDown[0] && !GameServer()->m_World.m_Paused)
 	{
@@ -260,10 +310,13 @@ void CGameControllerJUG::Tick()
 			if(m_CountDown[1] != -1)
 				NewJuggernaut(GameServer()->m_apPlayers[m_CountDown[1]]);
 			else NewJuggernaut();
-		}else if (beforeSec != afterSec){ //check if whole number
+		}
+		else if (beforeSec != afterSec)
+		{ //check if whole number
 			GameServer()->CreateSoundGlobal(SOUND_WEAPON_NOAMMO);
 		}
 	}
+
 
 	//if not paused, valid juggernaut
 	if(!GameServer()->m_World.m_Paused && current_jug && current_jug->GetCharacter())
@@ -272,7 +325,7 @@ void CGameControllerJUG::Tick()
 		if(!m_bCriticalHealth && current_jug->GetCharacter()->GetHealth() <= 10)
 		{
 			m_bCriticalHealth = true;
-			char buf[] = "The Juggernaut is at CRITICAL health!";
+			char buf[] = "The Juggernaut has only 10HP!";
 			GameServer()->CreateSoundGlobal(SOUND_CTF_GRAB_EN);
 			GameServer()->SendChat(-1, CGameContext::CHAT_ALL, buf);
 			GameServer()->SendBroadcast(buf, -1);

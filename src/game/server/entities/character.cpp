@@ -731,8 +731,7 @@ bool CCharacter::IncreaseArmor(int Amount)
 void CCharacter::Die(int Killer, int Weapon)
 {
 		if(GameServer()->m_pController->IsJuggernaut(m_pPlayer->GetCID())){
-			GameServer()->Console()->Print(IConsole::OUTPUT_LEVEL_DEBUG, "game", "run please");
-			GameServer()->CreateSound(m_Pos, SOUND_GRENADE_EXPLODE);
+			GameServer()->CreateSoundGlobal(SOUND_GRENADE_EXPLODE);
 			GameServer()->CreateExplosion(m_Pos, m_pPlayer->GetCID(), WEAPON_RIFLE, true);
 		}
 	// we got to wait 0.5 secs before respawning

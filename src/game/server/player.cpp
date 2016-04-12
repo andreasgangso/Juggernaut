@@ -135,7 +135,7 @@ void CPlayer::Snap(int SnappingClient)
 	//CGameControllerJUG *JUGController = GameServer()->m_pController->Juggernaut(); //returns NULL if not "JUG" gametype
 	if(GameServer()->m_pController->m_pGameType == "JUG" && !GameServer()->m_World.m_Paused){
 		pClientInfo->m_UseCustomColor = 1;
-		if(GameServer()->m_pController->IsJuggernaut(m_ClientID)){
+		if(GameServer()->m_pController->IsJuggernaut(m_ClientID) && m_pCharacter){
 			StrToInts(&pClientInfo->m_Clan0, 3, "JUG");
 			int health = m_pCharacter->GetHealth();
 
